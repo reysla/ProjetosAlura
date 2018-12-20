@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Alura.WebAPI.WebApp.Api
 {
     [ApiController]
-    [Route("controller")]
+    [Route("[controller]")]
     public class LivrosController : ControllerBase
     {
         private readonly IRepository<Livro> _repo;
@@ -22,7 +22,7 @@ namespace Alura.WebAPI.WebApp.Api
         [HttpGet]
         public IActionResult ListaDeLivros()
         {
-            var lista = _repo.All.Select(l => l.ToModel()).ToList();
+            var lista = _repo.All.Select(l => l.ToApi()).ToList();
             return Ok(lista);
         }
 
@@ -34,11 +34,25 @@ namespace Alura.WebAPI.WebApp.Api
             {
                 return NotFound();
             }
-            return Ok(model.ToModel());
+            return Ok(model.ToApi());
+        }
+
+        [HttpGet("{id}/capa")]
+        public IActionResult ImagemCapa(int id)
+        {
+            byte[] img = _repo.All
+               .Where(l => l.Id == id)
+               .Select(l => l.ImagemCapa)
+               .FirstOrDefault();
+            if (img != null)
+            {
+                return File(img, "image/png");
+            }
+            return File("~/images/capas/capa-vazia.png", "image/png");
         }
 
         [HttpPost]
-        public IActionResult Incluir([FromBody]LivroUpload model)
+        public IActionResult Incluir([FromBody] LivroUpload model)
         {
             if (ModelState.IsValid)
             {
@@ -51,7 +65,7 @@ namespace Alura.WebAPI.WebApp.Api
         }
 
         [HttpPut]
-        public IActionResult Alterar([FromBody]LivroUpload model)
+        public IActionResult Alterar([FromBody] LivroUpload model)
         {
             if (ModelState.IsValid)
             {
@@ -78,7 +92,7 @@ namespace Alura.WebAPI.WebApp.Api
                 return NotFound();
             }
             _repo.Excluir(model);
-            return NoContent(); //204
+            return NoContent(); //203
         }
     }
 }
